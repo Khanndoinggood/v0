@@ -1,11 +1,23 @@
+import { useState } from 'react';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { CategoryNav } from './components/CategoryNav';
 import { ListingCard } from './components/ListingCard';
 import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { ProductDetail } from './components/ProductDetail';
 
-const featuredListings = [
+interface Product {
+  id: number;
+  image: string;
+  title: string;
+  price: string;
+  location: string;
+  category: string;
+  featured?: boolean;
+}
+
+const featuredListings: Product[] = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1609869882537-6a860e45a0d6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
@@ -75,6 +87,18 @@ const featuredListings = [
 ];
 
 export default function App() {
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBack = () => {
+    setSelectedProduct(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 lg:pb-0">
       <Header />
@@ -82,29 +106,47 @@ export default function App() {
       <CategoryNav />
       <MobileBottomNav />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2>Featured Products</h2>
-          <a href="#" className="text-green-600 hover:underline">View All</a>
-        </div>
+      {selectedProduct ? (
+        <ProductDetail
+          product={selectedProduct}
+          relatedProducts={featuredListings
+            .filter((p) => p.id !== selectedProduct.id)
+            .slice(0, 4)}
+          onBack={handleBack}
+          onSelectProduct={handleSelectProduct}
+        />
+      ) : (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2>Featured Products</h2>
+            <a href="#" className="text-green-600 hover:underline">View All</a>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-          {featuredListings.map((listing) => (
-            <ListingCard key={listing.id} {...listing} />
-          ))}
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+            {featuredListings.map((listing) => (
+              <div key={listing.id} onClick={() => handleSelectProduct(listing)}>
+                <ListingCard {...listing} />
+              </div>
+            ))}
+          </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <h2>Fresh Arrivals</h2>
-          <a href="#" className="text-green-600 hover:underline">View All</a>
-        </div>
+          <div className="flex items-center justify-between mb-6">
+            <h2>Fresh Arrivals</h2>
+            <a href="#" className="text-green-600 hover:underline">View All</a>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {featuredListings.slice(0, 4).map((listing) => (
-            <ListingCard key={`recent-${listing.id}`} {...listing} featured={false} />
-          ))}
-        </div>
-      </main>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {featuredListings.slice(0, 4).map((listing) => (
+              <div
+                key={`recent-${listing.id}`}
+                onClick={() => handleSelectProduct(listing)}
+              >
+                <ListingCard {...listing} featured={false} />
+              </div>
+            ))}
+          </div>
+        </main>
+      )}
 
       <Footer />
     </div>
